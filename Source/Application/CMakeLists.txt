@@ -17,6 +17,7 @@ TARGET_LINK_LIBRARIES(${LIBRARY_NAME} PRIVATE
         Qt6::Gui
         Qt6::Quick
         Qt6::QuickControls2
+
         UserInterfaceplugin
 )
 
