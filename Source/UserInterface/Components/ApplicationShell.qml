@@ -7,8 +7,6 @@ import QtQuick.Layouts
 import "../Pages" as Pages
 
 Item {
-    anchors.fill: parent
-
     TabBar {
         id: shellBar
         width: parent.width
@@ -18,13 +16,15 @@ Item {
         }
 
         TabButton {
-            text: qsTr("Placeholder")
+            text: qsTr("Chat")
         }
     }
 
     StackLayout {
-        anchors.fill: parent
+        anchors.left: parent.left
         anchors.top: shellBar.bottom
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
 
         currentIndex: shellBar.currentIndex
 
@@ -32,8 +32,8 @@ Item {
             id: homePage
         }
 
-        Pages.PlaceholderPage {
-            id: placeholderPage
+        Pages.ChatPage {
+            id: chatPage
         }
     }
 }

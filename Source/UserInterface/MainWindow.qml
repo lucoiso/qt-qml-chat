@@ -17,15 +17,17 @@ Window {
         id: mainStack
         anchors.fill: parent
 
-        initialItem: Pages.LoginPage
-        {
-            onLoginSuccessful: mainStack.push(compShell)
-        }
-
         Component {
             id: compShell
+
             Components.ApplicationShell {
-                id: appShell
+            }
+        }
+
+        initialItem: Pages.LoginPage
+        {
+            onLoginSuccessful: function (username) {
+                mainStack.push(compShell)
             }
         }
     }

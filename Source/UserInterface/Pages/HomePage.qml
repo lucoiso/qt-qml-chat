@@ -1,14 +1,33 @@
 // Copyright Notices: [...]
 
 import QtQuick
+import QtQuick.Controls
 
 Item {
-    anchors.fill: parent
-
     Rectangle {
         anchors.centerIn: parent
         width: 200
         height: 200
-        color: "yellow"
+        color: "lightsteelblue"
+        radius: 4
+
+        Column {
+            spacing: 10
+            anchors.centerIn: parent
+
+            Button {
+                text: "Start Server"
+                onClicked: {
+                    console.log("ss wip")
+                }
+            }
+
+            Button {
+                text: "Start Client"
+                onClicked: {
+                    console.log("sc wip")
+                }
+            }
+        }
     }
 }
