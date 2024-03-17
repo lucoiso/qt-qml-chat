@@ -18,12 +18,11 @@ namespace ChatBackEnd
         boost::function<void(const Session *)> m_DisconnectCallback {};
 
     public:
-        Session(boost::asio::io_context &Context, boost::asio::ip::tcp::socket Socket, const boost::function<void(const Session *)> &DisconnectCallback);
-        ~Session() override;
+        Session(boost::asio::io_context &, boost::asio::ip::tcp::socket, const boost::function<void(const Session *)> &);
 
-        void Connect(const boost::function<void(const char *)> &Callback) override;
+        void Connect(const boost::function<void(std::string)> &) override;
 
     protected:
-        void ReadCallback(const boost::system::error_code &Error, std::size_t BytesTransferred) override;
+        void ReadCallback(const boost::system::error_code &, std::size_t) override;
     };
 } // namespace ChatBackEnd

@@ -48,9 +48,12 @@ QT_ADD_QML_MODULE(${LIBRARY_NAME}
         RESOURCE_PREFIX /
 )
 
+FIND_PACKAGE(Boost REQUIRED COMPONENTS json)
 TARGET_LINK_LIBRARIES(${LIBRARY_NAME} PRIVATE
         Qt6::Core
         Qt6::Qml
+
+        Boost::json
 
         ChatBackEnd
 )

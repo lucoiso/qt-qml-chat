@@ -3,6 +3,7 @@
 module;
 
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/log/trivial.hpp>
 
 module ChatBackEnd.Client;
 
@@ -14,74 +15,49 @@ class Client::Impl
     std::shared_ptr<Service> m_Service{};
 
     std::string m_Host{};
-    std::int32_t m_Port{-1};
+    std::uint16_t m_Port {0U};
 
 public:
-    Impl(boost::asio::io_context &Context, const char *Host, const std::int32_t Port) : m_Context(Context), m_Host(Host), m_Port(Port)
+    Impl(boost::asio::io_context &Context, const std::string_view Host, const std::uint16_t Port) : m_Context(Context), m_Host(Host), m_Port(Port)
     {
     }
 
-    ~Impl()
+    void Connect(const boost::function<void(std::string)> &Callback)
     {
-        Disconnect();
-    }
-
-    void Connect(const boost::function<void(const char *)> &Callback)
-    {
-        if (m_Service = std::make_shared<Service>(m_Context, m_Host.c_str(), m_Port); m_Service)
-        {
-            m_Service->Connect(Callback);
-        }
+        m_Service = std::make_unique<Service>(m_Context, m_Host.c_str(), m_Port);
+        m_Service->Connect(Callback);
     }
 
     void Disconnect() const
     {
-        if (m_Service)
-        {
-            m_Service->Disconnect();
-        }
+        m_Service->Disconnect();
     }
 
-    void Post(const char *Data)
+    void Post(const std::string_view Data)
     {
-        if (m_Service)
-        {
-            m_Service->Post(Data);
-        }
+        m_Service->Post(Data);
     }
 };
 
-Client::Client(boost::asio::io_context &Context, const char *Host, const std::int32_t Port)
+Client::Client(boost::asio::io_context &Context, const std::string_view Host, const std::uint16_t Port)
     : Service(Context, Host, Port)
     , m_Impl(std::make_unique<Impl>(Context, Host, Port))
 {
 }
 
-Client::~Client()
-{
-    Disconnect();
-}
+Client::~Client() = default;
 
-void Client::Connect(const boost::function<void(const char *)> &Callback)
+void Client::Connect(const boost::function<void(std::string)> &Callback)
 {
-    if (m_Impl)
-    {
-        m_Impl->Connect(Callback);
-    }
+    m_Impl->Connect(Callback);
 }
 
 void Client::Disconnect()
 {
-    if (m_Impl)
-    {
-        m_Impl->Disconnect();
-    }
+    m_Impl->Disconnect();
 }
 
-void Client::Post(const char *Data)
+void Client::Post(const std::string_view Data)
 {
-    if (m_Impl)
-    {
-        m_Impl->Post(Data);
-    }
+    m_Impl->Post(Data);
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <QObject>
+#include <QTimer>
 #include <QtQml/qqmlregistration.h>
 
 namespace UserInterface
@@ -25,6 +26,7 @@ namespace UserInterface
         QML_ELEMENT
 
         ServiceType m_Type {ServiceType::NONE};
+        QTimer m_Timer {nullptr};
 
     public:
         explicit ServiceProvider(QObject *Parent = nullptr);

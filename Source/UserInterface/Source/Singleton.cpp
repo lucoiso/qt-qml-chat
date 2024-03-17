@@ -8,6 +8,9 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/function.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
+#include <boost/json/serialize.hpp>
 
 import ChatBackEnd.SocketInterface;
 import ChatBackEnd.Client;
@@ -23,11 +26,6 @@ class Singleton::Handler
 
     std::unique_ptr<ChatBackEnd::SocketInterface> m_Service {};
 
-    void Callback(const char *Data)
-    {
-        m_DataReceivedCallback({Data});
-    }
-
     template<typename T>
     constexpr void RunService()
     {
@@ -37,11 +35,19 @@ class Singleton::Handler
         if (m_Service = std::make_unique<T>(m_Context, HostIP, Port); m_Service)
         {
             m_Service->Connect(
-                    [this](const char *Data)
+                    [this](const std::string &Data)
                     {
-                        Callback(Data);
+                        m_DataReceivedCallback({Data});
                     });
-            m_ContextThread = std::jthread(boost::bind(&boost::asio::io_context::run, &m_Context));
+
+            m_ContextThread = std::jthread(
+                    [this](const std::stop_token &Token)
+                    {
+                        while (!Token.stop_requested())
+                        {
+                            m_Context.run_one();
+                        }
+                    });
         }
         else
         {
@@ -68,7 +74,11 @@ public:
 
     void StopService()
     {
-        m_Service.reset();
+        if (m_Service)
+        {
+            m_Service->Disconnect();
+            m_Service.reset();
+        }
     }
 
     [[nodiscard]] bool IsRunning() const
@@ -76,19 +86,11 @@ public:
         return m_Service && m_Service->IsConnected();
     }
 
-    void PostChatMessage(const QString &User, const QString &Message)
+    void PostChatMessage(const std::string_view Data)
     {
-        m_Service->Post(std::data(Message.toStdString()));
+        m_Service->Post(Data);
     }
 };
-
-void Singleton::DataReceived(const std::string &Data)
-{
-    for (const auto &[ID, Callback]: m_MessageReceivedCallbacks)
-    {
-        Callback(Data);
-    }
-}
 
 Singleton::Singleton()
     : m_ServiceHandler(std::make_unique<Singleton::Handler>(
@@ -97,6 +99,15 @@ Singleton::Singleton()
                   DataReceived(Data);
               }))
 {
+    QObject::connect(qApp,
+                     &QCoreApplication::aboutToQuit,
+                     [this]
+                     {
+                         if (m_ServiceHandler)
+                         {
+                             m_ServiceHandler->StopService();
+                         }
+                     });
 }
 
 Singleton &Singleton::Get()
@@ -125,7 +136,7 @@ void Singleton::StartClient()
     m_ServiceHandler->StartClient();
 }
 
-Singleton::MessageReceivedHandler Singleton::BindMessageReceived(const std::function<void(std::string)> &DataReceived)
+Singleton::MessageReceivedHandler Singleton::BindMessageReceived(const std::function<void(QString, QString)> &DataReceived)
 {
     static std::atomic<std::uint8_t> ID {0U};
 
@@ -157,7 +168,25 @@ bool Singleton::IsRunning() const
 
 void Singleton::PostChatMessage(const QString &Message)
 {
-    m_ServiceHandler->PostChatMessage(m_User, Message);
+    boost::json::object MessageObject;
+    MessageObject.emplace("user", m_User.toStdString());
+    MessageObject.emplace("message", Message.toStdString());
+
+    m_ServiceHandler->PostChatMessage(serialize(MessageObject));
+}
+
+void Singleton::DataReceived(const std::string &Data)
+{
+    boost::json::value const JsonContent = boost::json::parse(Data);
+    boost::json::object const &JsonObject = JsonContent.get_object();
+
+    const QString UserObj = QString::fromStdString(std::data(JsonObject.at("user").as_string()));
+    const QString MessageObj = QString::fromStdString(std::data(JsonObject.at("message").as_string()));
+
+    for (const auto &[ID, Callback]: m_MessageReceivedCallbacks)
+    {
+        Callback(UserObj, MessageObj);
+    }
 }
 
 void Singleton::DispatchToMainThread(const std::function<void()> &Function)

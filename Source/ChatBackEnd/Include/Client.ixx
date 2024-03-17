@@ -19,12 +19,12 @@ namespace ChatBackEnd
         std::unique_ptr<Impl> m_Impl;
 
     public:
-        Client(boost::asio::io_context &Context, const char *Host, std::int32_t Port);
-        ~Client() override;
+        Client(boost::asio::io_context &, std::string_view, std::uint16_t);
+        ~Client();
 
-        void Connect(const boost::function<void(const char *)> &Callback) override;
+        void Connect(const boost::function<void(std::string)> &) override;
         void Disconnect() override;
 
-        void Post(const char *Data) override;
+        void Post(std::string_view) override;
     };
 } // namespace ChatBackEnd

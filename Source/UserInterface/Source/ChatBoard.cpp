@@ -46,12 +46,12 @@ void ChatBoard::OnMessageReceived(const QString &User, const QString &Message)
 ChatBoard::ChatBoard(QObject *Parent) : QObject(Parent)
 {
     m_MessageReceivedHandler = Singleton::Get().BindMessageReceived(
-            [this](const std::string &Data)
+            [this](const QString &User, const QString &Message)
             {
                 Singleton::Get().DispatchToMainThread(
-                        [this, Data]
+                        [this, User, Message]
                         {
-                            OnMessageReceived("Undefined", QString::fromStdString(Data));
+                            OnMessageReceived(User, Message);
                         });
             });
 }

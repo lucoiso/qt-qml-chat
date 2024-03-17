@@ -2,12 +2,31 @@
 
 #include "ServiceProvider.hpp"
 
+#include <execution>
+#include <future>
+
 #include "Singleton.hpp"
 
 using namespace UserInterface;
 
-ServiceProvider::ServiceProvider(QObject *Parent) : QObject(Parent)
+ServiceProvider::ServiceProvider(QObject *Parent) : QObject(Parent), m_Timer(this)
 {
+    m_Timer.setInterval(500);
+
+    QObject::connect(&m_Timer,
+                     &QTimer::timeout,
+                     [this]
+                     {
+                         static bool ServiceRunning = false;
+
+                         if (const bool IsRunning = Singleton::Get().IsRunning(); ServiceRunning != IsRunning)
+                         {
+                             ServiceRunning = IsRunning;
+                             OnIsConnectedChanged();
+                         }
+                     });
+
+    m_Timer.start();
 }
 
 ServiceProvider::ServiceType ServiceProvider::GetType() const
@@ -45,11 +64,7 @@ void ServiceProvider::TryConnect(const ServiceType Value)
                 return;
         }
 
-        if (const bool Result = Singleton::Get().IsRunning(); Result != IsRunning)
-        {
-            m_Type = Value;
-            OnTypeChanged();
-            OnIsConnectedChanged();
-        }
+        m_Type = Value;
+        OnTypeChanged();
     }
 }

@@ -15,12 +15,7 @@ Session::Session(boost::asio::io_context &Context, boost::asio::ip::tcp::socket 
 {
 }
 
-Session::~Session()
-{
-    SocketInterface::Disconnect();
-}
-
-void Session::Connect(const boost::function<void(const char *)> &Callback)
+void Session::Connect(const boost::function<void(std::string)> &Callback)
 {
     SocketInterface::Connect(Callback);
 
@@ -35,7 +30,7 @@ void Session::Connect(const boost::function<void(const char *)> &Callback)
     }
 }
 
-void Session::ReadCallback(const boost::system::error_code &Error, std::size_t BytesTransferred)
+void Session::ReadCallback(const boost::system::error_code &Error, const std::size_t BytesTransferred)
 {
     SocketInterface::ReadCallback(Error, BytesTransferred);
 

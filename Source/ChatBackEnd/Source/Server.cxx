@@ -15,7 +15,7 @@ using namespace ChatBackEnd;
 
 class Server::Impl
 {
-    mutable std::mutex m_Mutex{};
+    bool m_IsConnected {};
 
     boost::asio::io_context &m_Context;
 
@@ -24,25 +24,18 @@ class Server::Impl
 
     std::queue<std::string> m_MessagesQueue{};
 
-    bool m_IsConnected{};
-
-    boost::function<void(const char *)> m_Callback{};
+    boost::function<void(std::string)> m_Callback {};
 
 public:
-    Impl(boost::asio::io_context &Context, const char *Host, const std::int32_t Port)
+    Impl(boost::asio::io_context &Context, const std::string_view Host, const std::uint16_t Port)
         : m_Context(Context)
         , m_Acceptor(std::make_unique<boost::asio::ip::tcp::acceptor>(Context,
-                                                                      boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(Host), Port)))
+                  boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(std::data(Host)), Port)))
         , m_IsConnected(false)
     {
     }
 
-    ~Impl()
-    {
-        Disconnect();
-    }
-
-    void Connect(const boost::function<void(const char *)> &Callback)
+    void Connect(const boost::function<void(std::string)> &Callback)
     {
         m_IsConnected = true;
         m_Callback = Callback;
@@ -70,7 +63,7 @@ public:
         }
     }
 
-    void Post(const char *Data)
+    void Post(const std::string_view Data)
     {
         if (m_Connections.empty())
         {
@@ -85,23 +78,29 @@ public:
         }
     }
 
+    [[nodiscard]] bool IsConnected() const
+    {
+        return m_IsConnected;
+    }
+
 private:
     void AcceptConnection()
     {
+        BOOST_LOG_TRIVIAL(debug) << "[" << __func__ << "]: "
+                                 << " - Accepting connection";
+
         if (m_IsConnected)
         {
-            CheckConnections();
-
-            const auto Callback = [this]<typename ErrorTy, typename SocketTy>(ErrorTy &&Error, SocketTy &&Socket)
-            {
-                AcceptCallback(std::forward<ErrorTy>(Error), std::forward<SocketTy>(Socket));
-            };
+            const auto Callback = std::bind(&Server::Impl::AcceptCallback, this, std::placeholders::_1, std::placeholders::_2);
             m_Acceptor->async_accept(Callback);
         }
     }
 
     void AcceptCallback(const boost::system::error_code &Error, boost::asio::ip::tcp::socket Socket)
     {
+        BOOST_LOG_TRIVIAL(debug) << "[" << __func__ << "]: "
+                                 << " - Accept callback reached";
+
         if (Error)
         {
             if (Error != boost::asio::error::operation_aborted)
@@ -114,21 +113,17 @@ private:
         }
         else
         {
-            BOOST_LOG_TRIVIAL(error) << "[" << __func__ << "]: "
+            BOOST_LOG_TRIVIAL(debug) << "[" << __func__ << "]: "
                                      << " - Accepting new Session on: " << Socket.remote_endpoint().address() << ":" << Socket.remote_endpoint().port();
 
-            const auto DisconnectCallback = [this]<typename SessionTy>(SessionTy &&Session)
-            {
-                OnClientDisconnected(std::forward<SessionTy>(Session));
-            };
-
+            const auto DisconnectCallback = boost::bind(&Server::Impl::OnClientDisconnected, this, boost::placeholders::_1);
             m_Connections.push_back(std::make_unique<Session>(m_Context, std::move(Socket), DisconnectCallback));
             m_Connections.back()->Connect(m_Callback);
 
             while (!m_MessagesQueue.empty())
             {
                 const std::string DequeuedMessage = m_MessagesQueue.front();
-                BOOST_LOG_TRIVIAL(error) << "[" << __func__ << "]: "
+                BOOST_LOG_TRIVIAL(debug) << "[" << __func__ << "]: "
                                          << " - Sending pending message to new connection: " << DequeuedMessage;
 
                 m_Connections.back()->Post(DequeuedMessage.c_str());
@@ -139,21 +134,9 @@ private:
         AcceptConnection();
     }
 
-    void CheckConnections()
-    {
-        std::_Erase_remove_if(m_Connections,
-                              [](const std::unique_ptr<Session> &ConnectionIterator)
-                              {
-                                  return !ConnectionIterator->IsConnected();
-                              });
-
-        BOOST_LOG_TRIVIAL(error) << "[" << __func__ << "]: "
-                                 << " - Num of existing connections: " << m_Connections.size();
-    }
-
     void OnClientDisconnected(const Session *const Session)
     {
-        BOOST_LOG_TRIVIAL(error) << "[" << __func__ << "]: "
+        BOOST_LOG_TRIVIAL(debug) << "[" << __func__ << "]: "
                                  << " - A client was disconnected.";
 
         std::_Erase_remove_if(m_Connections,
@@ -161,42 +144,33 @@ private:
                               {
                                   return ConnectionIterator.get() == Session;
                               });
-
-        CheckConnections();
     }
 };
 
-Server::Server(boost::asio::io_context &Context, const char *Host, const std::int32_t Port)
+Server::Server(boost::asio::io_context &Context, const std::string_view Host, const std::uint16_t Port)
     : Service(Context, Host, Port)
     , m_Impl(std::make_unique<Impl>(Context, Host, Port))
 {
 }
 
-Server::~Server()
-{
-    Disconnect();
-}
+Server::~Server() = default;
 
-void Server::Connect(const boost::function<void(const char *)> &Callback)
+void Server::Connect(const boost::function<void(std::string)> &Callback)
 {
-    if (m_Impl)
-    {
-        m_Impl->Connect(Callback);
-    }
+    m_Impl->Connect(Callback);
 }
 
 void Server::Disconnect()
 {
-    if (m_Impl)
-    {
-        m_Impl->Disconnect();
-    }
+    m_Impl->Disconnect();
 }
 
-void Server::Post(const char *Data)
+void Server::Post(const std::string_view Data)
 {
-    if (m_Impl)
-    {
-        m_Impl->Post(Data);
-    }
+    m_Impl->Post(Data);
+}
+
+bool Server::IsConnected() const
+{
+    return m_Impl->IsConnected();
 }

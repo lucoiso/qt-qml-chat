@@ -16,7 +16,7 @@ namespace UserInterface
         class Handler;
         std::unique_ptr<Handler> m_ServiceHandler;
 
-        std::unordered_map<std::uint8_t, std::function<void(std::string)>> m_MessageReceivedCallbacks {};
+        std::unordered_map<std::uint8_t, std::function<void(QString, QString)>> m_MessageReceivedCallbacks {};
 
         void DataReceived(const std::string &);
 
@@ -32,7 +32,7 @@ namespace UserInterface
         void StartClient();
 
         using MessageReceivedHandler = std::uint8_t;
-        [[nodiscard]] MessageReceivedHandler BindMessageReceived(const std::function<void(std::string)> &);
+        [[nodiscard]] MessageReceivedHandler BindMessageReceived(const std::function<void(QString, QString)> &);
         void UnbindMessageReceived(MessageReceivedHandler);
 
         void StopService();

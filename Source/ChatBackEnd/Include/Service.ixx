@@ -16,12 +16,11 @@ namespace ChatBackEnd
     export class CHATBACKENDMODULE_API Service : public SocketInterface
     {
         std::string m_Host {};
-        std::int32_t m_Port {-1};
+        std::uint16_t m_Port {0U};
 
     public:
-        Service(boost::asio::io_context &Context, const char *Host, std::int32_t Port);
-        ~Service() override;
+        Service(boost::asio::io_context &, std::string_view, std::uint16_t);
 
-        void Connect(const boost::function<void(const char *)> &Callback) override;
+        void Connect(const boost::function<void(std::string)> &) override;
     };
 } // namespace ChatBackEnd
