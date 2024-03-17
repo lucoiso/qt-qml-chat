@@ -15,8 +15,8 @@ namespace ChatBackEnd
 {
     export class CHATBACKENDMODULE_API Service : public SocketInterface
     {
-        std::string m_Host;
-        std::int32_t m_Port;
+        std::string m_Host {};
+        std::int32_t m_Port {-1};
 
     public:
         Service(boost::asio::io_context &Context, const char *Host, std::int32_t Port);

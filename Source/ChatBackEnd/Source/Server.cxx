@@ -15,18 +15,18 @@ using namespace ChatBackEnd;
 
 class Server::Impl
 {
-    mutable std::mutex m_Mutex;
+    mutable std::mutex m_Mutex{};
 
     boost::asio::io_context &m_Context;
 
-    std::unique_ptr<boost::asio::ip::tcp::acceptor> m_Acceptor;
-    std::list<std::unique_ptr<Session>> m_Connections;
+    std::unique_ptr<boost::asio::ip::tcp::acceptor> m_Acceptor{};
+    std::list<std::unique_ptr<Session>> m_Connections{};
 
-    std::queue<std::string> m_MessagesQueue;
+    std::queue<std::string> m_MessagesQueue{};
 
-    bool m_IsConnected;
+    bool m_IsConnected{};
 
-    boost::function<void(const char *)> m_Callback;
+    boost::function<void(const char *)> m_Callback{};
 
 public:
     Impl(boost::asio::io_context &Context, const char *Host, const std::int32_t Port)

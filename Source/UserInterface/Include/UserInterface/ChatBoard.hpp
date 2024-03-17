@@ -13,12 +13,11 @@ namespace UserInterface
     class ChatBoard : public QObject
     {
         Q_OBJECT
-        Q_PROPERTY(QString User READ GetUser WRITE SetUser NOTIFY OnUserChanged)
         Q_PROPERTY(QQmlListProperty<ChatMessage> History READ GetHistory NOTIFY OnHistoryChanged)
         QML_ELEMENT
 
-        QString m_User {"User"};
         QList<ChatMessage *> m_History {};
+        std::uint8_t m_MessageReceivedHandler {0U};
 
         static void AppendMessage(QQmlListProperty<ChatMessage> *, ChatMessage *);
         static [[nodiscard]] qsizetype CountMessages(QQmlListProperty<ChatMessage> *);
@@ -27,11 +26,10 @@ namespace UserInterface
         static void ReplaceMessage(QQmlListProperty<ChatMessage> *, qsizetype, ChatMessage *);
         static void PopMessage(QQmlListProperty<ChatMessage> *);
 
+        void OnMessageReceived(const QString &, const QString &);
+
     public:
         explicit ChatBoard(QObject *Parent = nullptr);
-
-        [[nodiscard]] QString GetUser() const;
-        void SetUser(const QString &);
 
         [[nodiscard]] QQmlListProperty<ChatMessage> GetHistory();
 
@@ -42,10 +40,9 @@ namespace UserInterface
         void ReplaceMessage(qsizetype, ChatMessage *);
         void PopMessage();
 
-        Q_INVOKABLE void PostMessage(const QString &);
+        Q_INVOKABLE void PostChatMessage(const QString &Message);
 
     signals:
-        void OnUserChanged();
         void OnHistoryChanged();
     };
 } // namespace UserInterface

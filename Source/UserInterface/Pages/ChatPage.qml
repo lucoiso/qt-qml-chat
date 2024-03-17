@@ -19,17 +19,22 @@ Item {
             id: messageListView
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.margins: 8
             Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+
+            ScrollBar.vertical: ScrollBar {
+            }
+
+            verticalLayoutDirection: ListView.BottomToTop
+            displayMarginBeginning: 40
+            displayMarginEnd: 40
+            spacing: 12
+
             orientation: ListView.Vertical
             model: chatBoard.History
 
             delegate: ColumnLayout {
                 Rectangle {
-                    Layout.leftMargin: 8
-                    Layout.topMargin: 4
-                    Layout.rightMargin: 8
-                    Layout.bottomMargin: 4
-
                     width: chatLayout.width - 16
                     height: textLayout.height
                     color: "lightsteelblue"
@@ -54,20 +59,20 @@ Item {
             }
         }
 
-        TextField {
-            id: messageInput
+        Pane {
             Layout.fillWidth: true
-            Layout.fillHeight: false
-            Layout.alignment: Qt.AlignLeft | Qt.AlignBottom
 
-            Layout.margins: 2
+            TextField {
+                id: messageInput
+                anchors.fill: parent
 
-            placeholderText: "Message"
+                placeholderText: "Message"
 
-            onAccepted: {
-                if (text.trim() !== "") {
-                    chatBoard.PostMessage(text)
-                    text = "";
+                onAccepted: {
+                    if (text.trim() !== "") {
+                        chatBoard.PostChatMessage(text)
+                        text = "";
+                    }
                 }
             }
         }

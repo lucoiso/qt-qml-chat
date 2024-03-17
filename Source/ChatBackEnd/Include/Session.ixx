@@ -15,7 +15,7 @@ namespace ChatBackEnd
 {
     export class CHATBACKENDMODULE_API Session : public SocketInterface
     {
-        boost::function<void(const Session *)> m_DisconnectCallback;
+        boost::function<void(const Session *)> m_DisconnectCallback {};
 
     public:
         Session(boost::asio::io_context &Context, boost::asio::ip::tcp::socket Socket, const boost::function<void(const Session *)> &DisconnectCallback);

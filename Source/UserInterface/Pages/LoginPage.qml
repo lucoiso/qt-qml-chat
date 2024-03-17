@@ -3,14 +3,20 @@
 import QtQuick
 import QtQuick.Controls
 
+import UserInterface
+
 Item {
     readonly property int field_width: 200
 
-    signal loginSuccessful(username: string)
+    signal loginSuccessful()
 
     Column {
         anchors.centerIn: parent
         spacing: 8
+
+        LoginSetup {
+            id: loginSetup
+        }
 
         TextField {
             id: usernameInput
@@ -21,9 +27,11 @@ Item {
         Button {
             text: "Login"
             width: field_width
+            enabled: usernameInput.text.trim() !== ""
 
             onClicked: {
-                loginSuccessful(usernameInput.text);
+                loginSetup.User = usernameInput.text;
+                loginSuccessful();
             }
         }
     }

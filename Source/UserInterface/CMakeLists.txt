@@ -14,11 +14,17 @@ SET(PUBLIC_MODULES_BASE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Include/${LIBRARY_
 SET(PRIVATE_MODULES
         ${PRIVATE_MODULES_BASE_DIRECTORY}/ChatBoard.cpp
         ${PRIVATE_MODULES_BASE_DIRECTORY}/ChatMessage.cpp
+        ${PRIVATE_MODULES_BASE_DIRECTORY}/LoginSetup.cpp
+        ${PRIVATE_MODULES_BASE_DIRECTORY}/ServiceProvider.cpp
+        ${PRIVATE_MODULES_BASE_DIRECTORY}/Singleton.cpp
 )
 
 SET(PUBLIC_MODULES
         ${PUBLIC_MODULES_BASE_DIRECTORY}/ChatBoard.hpp
         ${PUBLIC_MODULES_BASE_DIRECTORY}/ChatMessage.hpp
+        ${PUBLIC_MODULES_BASE_DIRECTORY}/LoginSetup.hpp
+        ${PUBLIC_MODULES_BASE_DIRECTORY}/ServiceProvider.hpp
+        ${PUBLIC_MODULES_BASE_DIRECTORY}/Singleton.hpp
 )
 
 # ---------------- Qt Setup ----------------
@@ -28,7 +34,7 @@ SET(QML_FILES
         MainWindow.qml
         Pages/ChatPage.qml
         Pages/LoginPage.qml
-        Pages/HomePage.qml
+        Pages/ServicePage.qml
         Components/ApplicationShell.qml
 )
 
@@ -42,14 +48,11 @@ QT_ADD_QML_MODULE(${LIBRARY_NAME}
         RESOURCE_PREFIX /
 )
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS json headers system log)
 TARGET_LINK_LIBRARIES(${LIBRARY_NAME} PRIVATE
         Qt6::Core
         Qt6::Qml
-        Boost::headers
-        Boost::system
-        Boost::log
-        Boost::json
+
+        ChatBackEnd
 )
 
 TARGET_INCLUDE_DIRECTORIES(${LIBRARY_NAME} PRIVATE

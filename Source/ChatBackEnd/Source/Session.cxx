@@ -17,7 +17,7 @@ Session::Session(boost::asio::io_context &Context, boost::asio::ip::tcp::socket 
 
 Session::~Session()
 {
-    Disconnect();
+    SocketInterface::Disconnect();
 }
 
 void Session::Connect(const boost::function<void(const char *)> &Callback)

@@ -9,14 +9,16 @@ import "../Pages" as Pages
 Item {
     TabBar {
         id: shellBar
+
+        z: 999
         width: parent.width
 
         TabButton {
-            text: qsTr("Home")
+            text: qsTr("Service")
         }
 
         TabButton {
-            text: qsTr("Chat")
+            text: qsTr("Chat Board")
         }
     }
 
@@ -28,8 +30,8 @@ Item {
 
         currentIndex: shellBar.currentIndex
 
-        Pages.HomePage {
-            id: homePage
+        Pages.ServicePage {
+            id: servicePage
         }
 
         Pages.ChatPage {

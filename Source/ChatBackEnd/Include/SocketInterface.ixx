@@ -16,15 +16,15 @@ namespace ChatBackEnd
     export class CHATBACKENDMODULE_API SocketInterface
     {
     protected:
-        std::string m_ReadData;
-        std::string m_WriteData;
+        std::string m_ReadData {};
+        std::string m_WriteData {};
 
-        mutable std::mutex m_Mutex;
+        mutable std::mutex m_Mutex {};
 
         boost::asio::io_context &m_Context;
         boost::asio::ip::tcp::socket m_Socket;
 
-        boost::function<void(const char *)> m_Callback;
+        boost::function<void(const char *)> m_Callback {};
 
     public:
         explicit SocketInterface(boost::asio::io_context &Context);

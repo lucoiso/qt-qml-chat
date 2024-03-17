@@ -11,10 +11,10 @@ using namespace ChatBackEnd;
 class Client::Impl
 {
     boost::asio::io_context &m_Context;
-    std::shared_ptr<Service> m_Service;
+    std::shared_ptr<Service> m_Service{};
 
-    std::string m_Host;
-    std::int32_t m_Port;
+    std::string m_Host{};
+    std::int32_t m_Port{-1};
 
 public:
     Impl(boost::asio::io_context &Context, const char *Host, const std::int32_t Port) : m_Context(Context), m_Host(Host), m_Port(Port)

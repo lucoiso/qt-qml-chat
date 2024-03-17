@@ -26,7 +26,7 @@ Window {
 
         initialItem: Pages.LoginPage
         {
-            onLoginSuccessful: function (username) {
+            onLoginSuccessful: {
                 mainStack.push(compShell)
             }
         }

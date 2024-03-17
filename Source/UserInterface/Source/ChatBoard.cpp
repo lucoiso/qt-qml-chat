@@ -1,8 +1,7 @@
 // Copyright Notices: [...]
 
 #include "ChatBoard.hpp"
-
-#include <memory>
+#include "Singleton.hpp"
 
 using namespace UserInterface;
 
@@ -36,22 +35,25 @@ void ChatBoard::PopMessage(QQmlListProperty<ChatMessage> *List)
     reinterpret_cast<ChatBoard *>(List->object)->PopMessage();
 }
 
+void ChatBoard::OnMessageReceived(const QString &User, const QString &Message)
+{
+    const auto NewMessage = new ChatMessage(this);
+    NewMessage->SetUser(User);
+    NewMessage->SetMessage(Message);
+    AppendMessage(NewMessage);
+}
+
 ChatBoard::ChatBoard(QObject *Parent) : QObject(Parent)
 {
-}
-
-QString ChatBoard::GetUser() const
-{
-    return m_User;
-}
-
-void ChatBoard::SetUser(const QString &Value)
-{
-    if (m_User != Value)
-    {
-        m_User = Value;
-        OnUserChanged();
-    }
+    m_MessageReceivedHandler = Singleton::Get().BindMessageReceived(
+            [this](const std::string &Data)
+            {
+                Singleton::Get().DispatchToMainThread(
+                        [this, Data]
+                        {
+                            OnMessageReceived("Undefined", QString::fromStdString(Data));
+                        });
+            });
 }
 
 QQmlListProperty<ChatMessage> ChatBoard::GetHistory()
@@ -68,7 +70,7 @@ QQmlListProperty<ChatMessage> ChatBoard::GetHistory()
 
 void ChatBoard::AppendMessage(ChatMessage *Message)
 {
-    m_History.append(Message);
+    m_History.push_front(Message);
     OnHistoryChanged();
 }
 
@@ -108,11 +110,8 @@ void ChatBoard::PopMessage()
         OnHistoryChanged();
     }
 }
-
-void ChatBoard::PostMessage(const QString &Message)
+void ChatBoard::PostChatMessage(const QString &Message)
 {
-    const auto NewMessage = new ChatMessage(this);
-    NewMessage->SetUser(GetUser());
-    NewMessage->SetMessage(Message);
-    AppendMessage(NewMessage);
+    Singleton::Get().PostChatMessage(Message);
+    OnMessageReceived(Singleton::Get().GetUser(), Message);
 }
